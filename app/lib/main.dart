@@ -38,12 +38,33 @@ class _MediaScreenState extends State<MediaScreen> {
 
   // This is the list of messages(weather) to be displayed
   List<String> messages = [];
+  List<String> newsHeadlines = [];
 
   @override
   void initState() {
     super.initState();
     fetchPlaylist();
     fetchMessages();
+    fetchNews(); // <-- add this line
+  }
+
+
+  Future<void> fetchNews() async {
+    final response = await http.get(Uri.parse('http://localhost/main/api/news'));
+    
+    if (response.statusCode == 200) {
+      // final Map<String, dynamic> data = jsonDecode(response.body);
+      // final List<dynamic> items = data['data'];
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final List<dynamic> items = data['data'];
+      final headlines = items.map((item) => item['title'] as String).toList();
+
+      setState(() {
+        newsHeadlines = headlines;
+      });
+    } else {
+      print('Failed to load news headlines');
+    }
   }
 
   // Fetch messages from the server
@@ -128,34 +149,44 @@ class _MediaScreenState extends State<MediaScreen> {
                     : const CircularProgressIndicator()
                 : (playlist.isNotEmpty)
                     ? CachedNetworkImage(
-                      imageUrl: playlist[currentIndex].url,
-                      placeholder: (context, url) => const CircularProgressIndicator(),
-                      errorWidget: (context, url, error) => const Icon(Icons.error),
-                    )
-
+                        imageUrl: playlist[currentIndex].url,
+                        placeholder: (context, url) =>
+                            const CircularProgressIndicator(),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
+                      )
                     : const CircularProgressIndicator(),
           ),
           if (messages.isNotEmpty)
             Positioned(
-              bottom: 20,
+              top: 0,
               left: 0,
               right: 0,
               child: Container(
-                height: 40,
-                color: Colors.black.withOpacity(0.6),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                height: 30,
+                color: Colors.blueGrey.shade900,
                 child: Marquee(
                   text: messages.join("   ●   "),
-                  style: const TextStyle(fontSize: 20, color: Colors.white),
-                  scrollAxis: Axis.horizontal,
+                  style: const TextStyle(fontSize: 16, color: Colors.white),
                   blankSpace: 100,
                   velocity: 30,
-                  pauseAfterRound: Duration(seconds: 3),
-                  startAfter: Duration(seconds: 1),
-                  accelerationDuration: Duration(seconds: 1),
-                  accelerationCurve: Curves.linear,
-                  decelerationDuration: Duration(seconds: 1),
-                  decelerationCurve: Curves.easeOut,
+                ),
+              ),
+            ),
+          if (newsHeadlines.isNotEmpty)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: 30,
+                color: Colors.black.withOpacity(0.7),
+                child: Marquee(
+                  text: newsHeadlines.join("   ●   "),
+                  style:
+                      const TextStyle(fontSize: 16, color: Colors.orangeAccent),
+                  blankSpace: 100,
+                  velocity: 30,
                 ),
               ),
             ),

@@ -24,8 +24,37 @@ class ExternalAPIController {
             return;
         }
 
-        $data = $this->fetchApi($url);
-        echo $this->formatResponse($data);
+        $rss = simplexml_load_file($url);
+        $items = [];
+
+        // Get today's date in the RSS format
+        $today = date('Y-m-d');
+
+        foreach ($rss->channel->item as $item) {
+            $pubDate = (string)$item->pubDate;
+            $pubDateFormatted = date('Y-m-d', strtotime($pubDate));
+
+            // Only include items published today
+            if ($pubDateFormatted === $today) {
+                $ns_content = $item->children('content', true);
+                $media = $item->enclosure['url'] ?? null;
+
+                $items[] = [
+                    'title' => (string)$item->title,
+                    'link' => (string)$item->link,
+                    'category' => (string)$item->category,
+                    'description' => strip_tags((string)$item->description),
+                    'content' => (string)$ns_content,
+                    'image' => (string)$media,
+                    'creator' => (string)$item->children('dc', true)->creator,
+                    'pubDate' => $pubDate,
+                ];
+            }
+        }
+        echo json_encode([
+            'status' => 'success',
+            'data' => $items,
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     }
 
     public function generateWeatherAds() {

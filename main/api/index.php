@@ -39,7 +39,7 @@ switch ($request) {
 
     case 'news':
         $news = $ExternalAPIController->getNews();
-        echo json_encode($news);
+        echo $news;
         break;
 
     case 'weather-ads':
