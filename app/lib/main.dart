@@ -131,65 +131,91 @@ class _MediaScreenState extends State<MediaScreen> {
     _controller?.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
+   @override
+Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('TV Box App'),
       ),
       body: Stack(
         children: [
-          Center(
-            child: _isVideoPlaying
-                ? (_controller != null && _controller!.value.isInitialized)
-                    ? AspectRatio(
-                        aspectRatio: _controller!.value.aspectRatio,
-                        child: VideoPlayer(_controller!),
-                      )
-                    : const CircularProgressIndicator()
-                : (playlist.isNotEmpty)
-                    ? CachedNetworkImage(
-                        imageUrl: playlist[currentIndex].url,
-                        placeholder: (context, url) =>
-                            const CircularProgressIndicator(),
-                        errorWidget: (context, url, error) =>
-                            const Icon(Icons.error),
-                      )
-                    : const CircularProgressIndicator(),
+          Column(
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    // CENTER - Media
+                    Expanded(
+                      child: Center(
+                        child: _isVideoPlaying
+                            ? (_controller != null &&
+                                    _controller!.value.isInitialized)
+                                ? AspectRatio(
+                                    aspectRatio: _controller!.value.aspectRatio,
+                                    child: VideoPlayer(_controller!),
+                                  )
+                                : const CircularProgressIndicator()
+                            : (playlist.isNotEmpty)
+                                ? CachedNetworkImage(
+                                    imageUrl: playlist[currentIndex].url,
+                                    placeholder: (context, url) =>
+                                        const CircularProgressIndicator(),
+                                    errorWidget: (context, url, error) =>
+                                        const Icon(Icons.error),
+                                  )
+                                : const CircularProgressIndicator(),
+                      ),
+                    ),
+
+                    // RIGHT - Weather / Utilities
+                    Container(
+                      width: 180,
+                      color: Colors.indigo.withOpacity(0.7),
+                      child: messages.isNotEmpty
+                          ? ListView.builder(
+                              itemCount: messages.length,
+                              itemBuilder: (context, index) => Padding(
+                                padding: const EdgeInsets.all(10.0),
+                                child: Text(
+                                  messages[index],
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            )
+                          : const Center(
+                              child: Text(
+                                "No messages",
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 16),
+                              ),
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // BOTTOM - News Marquee
+              if (newsHeadlines.isNotEmpty)
+                Container(
+                  height: 50,
+                  color: Colors.grey[850]!.withOpacity(0.85),
+                  child: Marquee(
+                    text: newsHeadlines.join("   ●   "),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      color: Colors.amberAccent,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    blankSpace: 100,
+                    velocity: 30,
+                  ),
+                ),
+            ],
           ),
-          if (messages.isNotEmpty)
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                height: 30,
-                color: Colors.blueGrey.shade900,
-                child: Marquee(
-                  text: messages.join("   ●   "),
-                  style: const TextStyle(fontSize: 16, color: Colors.white),
-                  blankSpace: 100,
-                  velocity: 30,
-                ),
-              ),
-            ),
-          if (newsHeadlines.isNotEmpty)
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                height: 30,
-                color: Colors.black.withOpacity(0.7),
-                child: Marquee(
-                  text: newsHeadlines.join("   ●   "),
-                  style:
-                      const TextStyle(fontSize: 16, color: Colors.orangeAccent),
-                  blankSpace: 100,
-                  velocity: 30,
-                ),
-              ),
-            ),
         ],
       ),
     );
